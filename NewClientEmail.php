@@ -3,6 +3,11 @@
 /**
  *  Class to make password and send email to new clients
  *
+ * The new clients are not registered by by magento,
+ * but they are imported from an external server. 
+ * This class checks if there are new clients, creates
+ * passwords and sends them by e-mail.
+ * 
  */
 
 namespace MyModule\NewClient\Model;

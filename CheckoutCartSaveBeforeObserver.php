@@ -3,6 +3,10 @@
  * This observer is called before saving the cart
  * 
  * We use it to check if a configurable option has been changed
+ * This class is used on cart page were we have added a pull
+ * down menu to change the option of a configurable product,
+ * If an option has been changed, an other product is replaced
+ * to the cart, keeping the same order of products.
  * 
  */
 

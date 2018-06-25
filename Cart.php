@@ -1,6 +1,6 @@
 <?php
 /**
- * This is a class to to insert simple and configurable product to cart
+ * This is a class to to insert a simple or a configurable product to cart
  * 
  * Also this class gives some functions for debugging and easier
  * programming.

@@ -3,6 +3,11 @@
 /**
  * A class to handle requests to Api server
  * 
+ * This class makes direct requests to an external
+ * server to get data in real time.
+ * For example we need to query the order status
+ * from the external server, because it is handled there.
+ * 
  */
 
 namespace MyModule\ApiClient\Model;
@@ -429,144 +434,3 @@ class ApiRequest extends AbstractModel {
 
 
 
-
-//OLD FUNCTIONS
-/*
- * 
-    // Mainly used to pre cache a bunch of products at once.
-    public function getProductPrices($clientId, $products) {
-
-        $productprices = [];
-        if (!empty($products)) {
-            $url = 'GetItemInfo?api_customer_id=' . $clientId . '&piARRLEN=' . count($products);
-            $index = 1;
-
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $productRepository = $objectManager->get('\Magento\Catalog\Model\ProductRepository');
-
-            foreach ($products as $entityId => $qty) {
-
-
-                $_product = $productRepository->getById($entityId);
-
-  
-
-                $explodedSku = explode('-->', $_product->getApiSku());
-
-                $packageUnit = 0;
-                $sku = $_product->getApiSku();
-                
-                if (is_array($explodedSku)) {
-                    $sku = $explodedSku[0];
-                    $package_unit = (isset($explodedSku[1]) ? $explodedSku[1] : "0001");
-                } 
-
-                // We do not use QTY for individual product prices: Do not change this, prices will be wrong!
-                // Api returns price * qty, at this moment we expect only 1
-                $qty = 1; 
-                
-                $package_quantity = (!empty($_product->getPackageQuantity()) ? $_product->getPackageQuantity() : 1);
-
-                $url .= '&sku_' . $index . '=' . $sku .
-                        '&order_qty_' . $index . '=' . $qty * $package_quantity .
-                        '&pu_' . $index . '=' . $package_unit;
-                $index ++;
-            }
-            
-
-            $dataObj = $this->doRequest($url);
-
-            if (isset($dataObj->subfile)) {
-                //\error_log(json_encode($dataObj->subfile));
-                array_walk(
-                        $dataObj->subfile, function($product) use(&$productprices) {
-                    $pieces = $product->order_qty;
-
-                    $productPrice = ($product->price * (100 - (double) $product->discount_perc));//Price minus bulk discount (Staffelkorting)
-                    $productprices[$product->sku . '-->' . $product->pu . '_q1'] = $productPrice;
-          
-                }
-                );
-            }
-        }
-
-        if (!empty($this->customerSession->getAPIProductPricesValue())) {
-            $productprices = array_merge($this->customerSession->getAPIProductPricesValue(), $productprices);
-        }
-        
-        $this->customerSession->setAPIProductPricesValue($productprices);
-
-        return $productprices;
-    }
-
-    public function getProductPrice($clientId, $productData) {
-        //\error_log(json_encode($productData));
-        $startTime = microtime();
-        $url = 'GetItemInfo?api_customer_id=' . $clientId . '&piARRLEN=1';
-
-        if (!isset($productData['qty'])) {
-            //Lets see if we can determine the qty from the order
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $cart = $objectManager->get('\Magento\Checkout\Model\Cart'); 
-
-            $itemsVisible = $cart->getQuote()->getAllVisibleItems();
-
-            foreach($itemsVisible as $item) {
-                if($item->getSku() == $productData['sku']) {
-                    $productData['qty'] = $item->getQty();
-                }
-            }
-            
-            //If still not set, default to 1
-            if(!isset($productData['qty'])) {
-                $productData['qty'] = 1;
-            }
-        }
-
-        if (!isset($productData['package_quantity']) || $productData['package_quantity'] < 1) {
-            $productData['package_quantity'] = 1;
-        }
-
-        $explodedSku = explode('-', $productData['sku']);
-
-        $packageUnit = 0;
-        if (is_array($explodedSku)) {
-            $sku = $explodedSku[0];
-            $packageUnit = $explodedSku[1];
-        }
-
-        $url .= '&sku_1=' . $sku .
-                '&order_qty_1=' . $productData['qty'] * $productData['package_quantity'] .
-                '&pu_1=' . $packageUnit;
-
-        $productprices = $this->customerSession->getAPIProductPricesValue();
-
-        if (!empty($productprices) && isset($productprices[$sku. '-->' . $packageUnit . '_q' . $productData['qty']])) {
-            if (isset($productprices[$sku. '-->' . $packageUnit . '_q' . $productData['qty']])) {
-                file_put_contents("/tmp/api.log", "PRICE RETRIEVED FROM SESSION: " . $url . "\n", FILE_APPEND);
-            }
-
-            return $productprices[$sku. '-->' . $packageUnit . '_q' . $productData['qty']];
-        }         
-
-        $dataObj = $this->doRequest($url);
-        $productPrice = false;
-        if (isset($dataObj->subfile)) {
-            //\error_log(json_encode($dataObj->subfile));
-            array_walk(
-                    $dataObj->subfile, function($product) use(&$productPrice, $productData) {
-                $pieces = $product->order_qty;
-
-                $productPrice = ($product->price * (1 - ((double) $product->discount_perc / 100)));//Price minus bulk discount (Staffelkorting)
-                
-            }
-            );
-        }
-        $productprices[$sku. '-->' . $packageUnit] = $productPrice;
-
-        $this->customerSession->setAPIProductPricesValue($productprices);
-
-        //echo date("H:i:s",( (microtime() - $startTime))) . "<br />";
-        return $productPrice;
-    }
- */
